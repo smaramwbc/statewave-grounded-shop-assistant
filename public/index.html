@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GreenHaven Outdoor & Garden — Grounded Shop Assistant Demo</title>
+<link rel="stylesheet" href="/shared.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand"><span class="mark"></span> GreenHaven Outdoor &amp; Garden</div>
+      <nav class="nav">
+        <a href="/">Storefront</a>
+        <a href="/ops.html">Ops console →</a>
+      </nav>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <div class="hero">
+      <h1>Ask our assistant — product advice, shipping, returns, care tips.</h1>
+      <p>Every answer is grounded in our real catalog and service content, with a source behind it. If we don't sell it or don't know, it says so.</p>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>Try asking</h2>
+        <ul>
+          <li>"Something for a shady spot — what do you recommend?"</li>
+          <li>"Do you have Japanese Painted Fern in stock?"</li>
+          <li>"How long do returns take?"</li>
+          <li>"Do you sell replacement tractor engines?" <em>(should say "not found")</em></li>
+        </ul>
+        <p style="font-size:.85rem;color:var(--ink-soft)">
+          This is Use Case A — a real-world grounded product advisor. Unanswerable questions
+          are quietly logged to the <strong>Ops Assistant</strong> so the content team can see
+          and close the gap. See <a href="/ops.html">the ops console</a>.
+        </p>
+      </div>
+      <div class="panel">
+        <h2>Storefront assistant</h2>
+        <div id="shop-chat" class="chat-mount"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>GreenHaven demo · built on statewave-core + chat-core + chat-widget · answer model: OpenRouter (or offline fallback)</footer>
+
+  <script type="module">
+    import { mountStatewaveChat } from "/vendor/chat-widget/mount.js";
+    mountStatewaveChat(document.getElementById("shop-chat"), {
+      apiUrl: "/api/chat",
+      readSubjects: ["shop:products", "faq:service", "content:guides"],
+      retrievalConfig: { globalMaxTokens: 2000 },
+      title: "GreenHaven Assistant",
+      placeholder: "Ask about plants, care, shipping, returns…",
+      mode: "shopper",
+    });
+  </script>
+</body>
+</html>

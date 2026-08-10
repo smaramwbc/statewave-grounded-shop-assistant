@@ -1,0 +1,42 @@
+[
+  {
+    "id": "svc-shipping",
+    "title": "Shipping",
+    "text": "GreenHaven ships within the continental US. Orders placed before 1pm ET ship the same business day for in-stock items. Live plants ship Monday–Wednesday only to avoid weekend transit stress. Standard shipping is $6.95 flat; orders over $75 ship free. Furniture over 50lbs ships via freight and may take 5–10 business days."
+  },
+  {
+    "id": "svc-returns",
+    "title": "Returns & refunds",
+    "text": "Non-plant items (tools, furniture, irrigation, soil) can be returned unused within 30 days of delivery for a full refund. Live plants are guaranteed for 14 days from delivery against shipping damage or defect — photos required, no return shipment needed for plants. Refunds are processed within 5–7 business days of the return being received or approved."
+  },
+  {
+    "id": "svc-payment",
+    "title": "Payment methods",
+    "text": "GreenHaven accepts Visa, Mastercard, Amex, Discover, PayPal, and Apple Pay at checkout. We do not accept personal checks or money orders. Orders over $150 can be split into 4 interest-free installments via our checkout Pay-in-4 option."
+  },
+  {
+    "id": "svc-warranty",
+    "title": "Plant guarantee",
+    "text": "All perennials and shrubs carry a 1-year hardiness guarantee when planted within USDA zones listed on the product page and cared for per the included care card. Annuals, houseplants, and cut material are not covered. One free replacement per order under this guarantee; proof of purchase required."
+  },
+  {
+    "id": "svc-account",
+    "title": "Order tracking & account",
+    "text": "Tracking numbers are emailed once an order ships and also appear under Account > Orders. Guest checkout orders can be tracked via the link in the shipping confirmation email without creating an account."
+  },
+  {
+    "id": "svc-terms",
+    "title": "Terms of service (summary)",
+    "text": "By ordering, customers agree GreenHaven is not liable for plant losses due to customer neglect, extreme weather after delivery, or failure to follow zone/light requirements listed on the product page. Full terms are available at checkout."
+  },
+  {
+    "id": "guide-shade",
+    "title": "Guide: planting in shady spots",
+    "text": "For full or part shade, choose plants explicitly listed with 'shade' in their light requirement — hostas, astilbe, ferns, and Boston fern all perform well in low light. Avoid full-sun perennials like coneflower or lavender in shade; they will stretch, flower poorly, and eventually fail. Amend shaded beds with extra organic matter since tree roots often compete for moisture."
+  },
+  {
+    "id": "guide-watering",
+    "title": "Guide: watering new plantings",
+    "text": "Newly planted perennials need deep watering 2–3 times per week for the first 3 weeks, tapering to once weekly as roots establish. A drip irrigation kit on a mechanical timer removes the guesswork and prevents both over- and under-watering."
+  }
+]

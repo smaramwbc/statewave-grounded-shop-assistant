@@ -1,0 +1,35 @@
+# Runs a LiteLLM proxy the demo can point at.
+#
+# The LiteLLM proxy's pip install is macOS/Linux only (it pulls in uvloop and
+# gunicorn, which don't build on Windows). This image is the supported way to
+# run it on Windows — no WSL2 setup required beyond Docker Desktop.
+#
+#   docker compose -f docker-compose.litellm.yml up -d
+#
+# Then set in .env:
+#   LITELLM_BASE_URL=http://localhost:4001/v1
+#   LITELLM_API_KEY=sk-demo-local-key
+#   LITELLM_MODEL=gpt-4o-mini
+
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    ports:
+      - "4001:4000"
+    volumes:
+      - ./litellm/config.yaml:/app/config.yaml:ro
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      # Bearer token the proxy requires; must match LITELLM_API_KEY in .env.
+      LITELLM_MASTER_KEY: sk-demo-local-key
+    env_file:
+      # Provider keys (OPENAI_API_KEY, etc.) referenced from config.yaml via
+      # os.environ/. Optional — not needed for the local Ollama setup.
+      - path: ./litellm/.env
+        required: false
+    extra_hosts:
+      # Lets the container reach an Ollama (or any other service) running
+      # directly on the Windows host. Native on Docker Desktop; explicit here
+      # so the same file works on Linux too.
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

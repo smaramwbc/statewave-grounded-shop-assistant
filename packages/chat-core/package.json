@@ -1,0 +1,11 @@
+{
+  "name": "chat-core",
+  "version": "1.0.0",
+  "description": "Framework-independent grounded-chat engine: retrieval, prompt construction, citation validation, optional persistence. Mirrors @statewavedev/chat-core's contract. LLM-agnostic via completionFn (this repo wires up OpenRouter).",
+  "type": "module",
+  "main": "src/index.ts",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "statewave-core": "^1.0.0"
+  }
+}

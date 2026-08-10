@@ -1,0 +1,236 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Inter, Roboto, Arial, sans-serif;
+    background: #0f1420;
+    background-image:
+      radial-gradient(circle at 15% 10%, #1c2440 0%, transparent 45%),
+      radial-gradient(circle at 85% 90%, #142033 0%, transparent 45%);
+    color: #e7ecf7;
+    padding: 56px 60px;
+    width: 1520px;
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    letter-spacing: 0.2px;
+  }
+  .subtitle {
+    color: #8b96b3;
+    font-size: 13.5px;
+    margin: 0 0 34px;
+  }
+  .lanes {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+  .lane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 0 14px;
+  }
+  .lane-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+    color: #6f7ba0;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .card {
+    border-radius: 16px;
+    padding: 16px 16px;
+    position: relative;
+    box-shadow: 0 10px 30px -12px rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .card .icon {
+    font-size: 22px;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .card .title {
+    font-weight: 700;
+    font-size: 14.5px;
+    margin-bottom: 3px;
+  }
+  .card .desc {
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: rgba(231,236,247,0.82);
+  }
+  .card code {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 10.5px;
+    background: rgba(0,0,0,0.25);
+    padding: 1px 5px;
+    border-radius: 5px;
+  }
+  .c-source { background: linear-gradient(155deg,#2b3350,#1d233b); }
+  .c-ingest { background: linear-gradient(155deg,#4a3a7a,#2f2555); }
+  .c-store  { background: linear-gradient(155deg,#7a4b1e,#5a350f); }
+  .c-subject{ background: linear-gradient(155deg,#1e5a55,#123c39); }
+  .c-app    { background: linear-gradient(155deg,#1e4f7a,#123152); }
+  .c-llm    { background: linear-gradient(155deg,#5a1e5a,#3a123a); }
+  .c-ui     { background: linear-gradient(155deg,#2f3350,#1c2038); }
+
+  .connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    color: #566085;
+    font-size: 22px;
+  }
+
+  .middle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .loop-banner {
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: linear-gradient(90deg, rgba(154,84,255,0.16), rgba(255,138,61,0.14));
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 16px;
+    padding: 16px 22px;
+  }
+  .loop-banner .loop-icon { font-size: 24px; }
+  .loop-banner .loop-text {
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: #cfd6ea;
+  }
+  .loop-banner b { color: #ffb37a; }
+
+  .legend {
+    margin-top: 26px;
+    display: flex;
+    gap: 22px;
+    font-size: 11.5px;
+    color: #8b96b3;
+  }
+  .legend span.dot {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+  <h1>Statewave Grounded Shop Assistant &mdash; Architecture</h1>
+  <p class="subtitle">Source content is ingested into an append-only store, compiled into Subjects, and read by two assistants that share one grounded-completion pipeline.</p>
+
+  <div class="lanes">
+
+    <div class="lane">
+      <div class="lane-label">Source content</div>
+      <div class="card c-source">
+        <span class="icon">🗂️</span>
+        <div class="title">catalog.json</div>
+        <div class="desc">Product data for GreenHaven's store</div>
+      </div>
+      <div class="card c-source">
+        <span class="icon">📄</span>
+        <div class="title">service-content.json</div>
+        <div class="desc">FAQs &amp; care guides</div>
+      </div>
+    </div>
+
+    <div class="connector">➜</div>
+
+    <div class="lane">
+      <div class="lane-label">Ingestion</div>
+      <div class="card c-ingest" style="margin-top:44px;">
+        <span class="icon">⚙️</span>
+        <div class="title">Ingestion job</div>
+        <div class="desc"><code>server/src/ingest/run.js</code><br/>Dedups by content hash, appends <b>Episodes</b></div>
+      </div>
+    </div>
+
+    <div class="connector">➜</div>
+
+    <div class="lane">
+      <div class="lane-label">StatewaveStore &mdash; append-only</div>
+      <div class="card c-store" style="margin-top:44px;">
+        <span class="icon">📚</span>
+        <div class="title">Episodes → compileSubject()</div>
+        <div class="desc">Keeps only the newest episode per <code>sourceId</code>; persisted to <code>db.json</code></div>
+      </div>
+    </div>
+
+    <div class="connector">➜</div>
+
+    <div class="lane">
+      <div class="lane-label">Compiled Subjects</div>
+      <div class="card c-subject"><span class="icon">🛒</span><div class="title">shop:products</div></div>
+      <div class="card c-subject"><span class="icon">💬</span><div class="title">faq:service</div></div>
+      <div class="card c-subject"><span class="icon">📘</span><div class="title">content:guides</div></div>
+      <div class="card c-subject"><span class="icon">🚧</span><div class="title">ops:coverage-gaps</div></div>
+    </div>
+
+    <div class="connector">➜</div>
+
+    <div class="lane">
+      <div class="lane-label">Assistants</div>
+      <div class="card c-app">
+        <span class="icon">🛍️</span>
+        <div class="title">Shopper Assistant</div>
+        <div class="desc"><code>POST /api/chat</code><br/>reads shop:products, faq:service, content:guides</div>
+      </div>
+      <div class="card c-app">
+        <span class="icon">🧭</span>
+        <div class="title">Ops Assistant</div>
+        <div class="desc"><code>POST /api/ops/chat</code><br/>reads shop:products, faq:service, ops:coverage-gaps</div>
+      </div>
+    </div>
+
+    <div class="connector">➜</div>
+
+    <div class="lane">
+      <div class="lane-label">Completion &amp; UI</div>
+      <div class="card c-llm">
+        <span class="icon">🧠</span>
+        <div class="title">completionFn</div>
+        <div class="desc">LiteLLM &middot; OpenRouter &middot; deterministic offline responder</div>
+      </div>
+      <div class="card c-ui">
+        <span class="icon">🖥️</span>
+        <div class="title">Storefront</div>
+        <div class="desc"><code>public/index.html</code></div>
+      </div>
+      <div class="card c-ui">
+        <span class="icon">🛠️</span>
+        <div class="title">Ops console</div>
+        <div class="desc"><code>public/ops.html</code></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="loop-banner">
+    <span class="loop-icon">🔁</span>
+    <div class="loop-text">
+      <b>The closed loop:</b> when the Shopper Assistant can't ground an answer, it appends a <code>ops:coverage-gaps</code> Episode.
+      The Ops Assistant reads that gap as evidence; resolving it appends another Episode with the same <code>sourceId</code>, superseding the gap instead of editing history.
+    </div>
+  </div>
+
+</body>
+</html>

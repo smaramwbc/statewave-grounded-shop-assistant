@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Matches the `engines.node: >=18` floor in package.json.
+        node: ["18", "20", "22"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - run: npm test
+
+      # The demo must stay clone-and-run with no API key: boot it with an
+      # empty environment and assert the offline responder comes up.
+      - name: Smoke test (no API key)
+        run: |
+          npm start &
+          for i in $(seq 1 20); do
+            curl -sf localhost:4000/healthz > /tmp/health.json && break
+            sleep 1
+          done
+          cat /tmp/health.json
+          grep -q '"completionMode":"offline-rule-based"' /tmp/health.json

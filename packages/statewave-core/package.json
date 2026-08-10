@@ -1,0 +1,8 @@
+{
+  "name": "statewave-core",
+  "version": "1.0.0",
+  "description": "Local, self-contained implementation of the Statewave memory-runtime contract: Episodes -> compiled Subjects -> getContext(question). Used so this use case runs standalone without a real Statewave server.",
+  "type": "module",
+  "main": "src/index.ts",
+  "license": "Apache-2.0"
+}

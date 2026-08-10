@@ -1,0 +1,169 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Inter, Roboto, Arial, sans-serif;
+    background: #0f1420;
+    background-image:
+      radial-gradient(circle at 10% 15%, #1c2440 0%, transparent 45%),
+      radial-gradient(circle at 90% 85%, #142033 0%, transparent 45%);
+    color: #e7ecf7;
+    padding: 56px 60px;
+    width: 1180px;
+  }
+  h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+  .subtitle { color: #8b96b3; font-size: 13.5px; margin: 0 0 34px; }
+
+  .actors {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 14px;
+    margin-bottom: 6px;
+  }
+  .actor-row { display: contents; }
+  .actor {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #aeb8d6;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .steps { display: flex; flex-direction: column; }
+  .step {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 14px;
+    align-items: stretch;
+    padding: 10px 0;
+  }
+  .who {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    color: #8b96b3;
+    font-weight: 600;
+  }
+  .who .n {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #2b3350;
+    color: #cfd6ea;
+    font-size: 10.5px;
+    display: flex; align-items: center; justify-content: center;
+    flex: 0 0 auto;
+  }
+  .bubble {
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 22px -12px rgba(0,0,0,0.6);
+  }
+  .bubble code {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 11px;
+    background: rgba(0,0,0,0.25);
+    padding: 1px 5px;
+    border-radius: 5px;
+  }
+  .b-user   { background: linear-gradient(155deg,#2b3350,#1c2038); }
+  .b-route  { background: linear-gradient(155deg,#1e4f7a,#123152); }
+  .b-store  { background: linear-gradient(155deg,#7a4b1e,#5a350f); }
+  .b-llm    { background: linear-gradient(155deg,#5a1e5a,#3a123a); }
+
+  .branches {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .branch {
+    border-radius: 16px;
+    padding: 18px 20px;
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+  .branch.grounded { background: linear-gradient(155deg, rgba(30,90,85,0.55), rgba(18,60,57,0.55)); }
+  .branch.gap { background: linear-gradient(155deg, rgba(122,75,30,0.55), rgba(90,53,15,0.55)); }
+  .branch .h {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .branch .desc { font-size: 12px; line-height: 1.6; color: rgba(231,236,247,0.85); }
+  .branch code { font-family: "SF Mono", Consolas, monospace; font-size: 11px; background: rgba(0,0,0,0.25); padding: 1px 5px; border-radius: 5px; }
+</style>
+</head>
+<body>
+  <h1>One chat turn, end to end</h1>
+  <p class="subtitle">"Do you have anything for full shade?" &mdash; from shopper message to a grounded answer or a logged coverage gap.</p>
+
+  <div class="actors">
+    <div class="actor">🙋 Shopper / Widget</div>
+    <div class="actor">⚙️ Route · Store · LLM</div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="who"><span class="n">1</span>Shopper → Widget</div>
+      <div class="bubble b-user">"Do you have anything for full shade?"</div>
+    </div>
+    <div class="step">
+      <div class="who"><span class="n">2</span>Widget → Route</div>
+      <div class="bubble b-route"><code>POST /api/chat</code> &nbsp; { sessionId, message }</div>
+    </div>
+    <div class="step">
+      <div class="who"><span class="n">3</span>Route</div>
+      <div class="bubble b-route">Validates request &amp; applies rate limit (30/min per IP)</div>
+    </div>
+    <div class="step">
+      <div class="who"><span class="n">4</span>Route → Store</div>
+      <div class="bubble b-store"><code>getContext(readSubjects, query)</code> → evidence chunks + citation IDs (S1, S2, …)</div>
+    </div>
+    <div class="step">
+      <div class="who"><span class="n">5</span>Route → completionFn</div>
+      <div class="bubble b-llm">System prompt + evidence block + history → { answer, grounded, citationIds }</div>
+    </div>
+    <div class="step">
+      <div class="who"><span class="n">6</span>Route</div>
+      <div class="bubble b-route">Drops any citationIds not in retrieved evidence (flagged as warnings)</div>
+    </div>
+    <div class="step">
+      <div class="who"><span class="n">7</span>Route → Store</div>
+      <div class="bubble b-store"><code>resolveCitations(surviving IDs)</code> → { subject, sourceId, label, snippet }</div>
+    </div>
+    <div class="step">
+      <div class="who"><span class="n">8</span>Route → Store</div>
+      <div class="bubble b-store">Appends Episode → <code>shop:conversations</code> (every turn, audit trail)</div>
+    </div>
+  </div>
+
+  <div class="branches">
+    <div class="branch grounded">
+      <div class="h">✅ Grounded &amp; cited</div>
+      <div class="desc">
+        <code>grounded: true</code> with citations[]<br/>
+        Widget shows the answer with citation chips.
+      </div>
+    </div>
+    <div class="branch gap">
+      <div class="h">🚧 Ungrounded / no surviving citation</div>
+      <div class="desc">
+        Route appends Episode → <code>ops:coverage-gaps</code> (status: open)<br/>
+        Widget replies: "I don't have grounded information on that."
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

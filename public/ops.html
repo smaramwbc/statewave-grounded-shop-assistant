@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GreenHaven — Ops Assistant (Content/QA)</title>
+<link rel="stylesheet" href="/shared.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand"><span class="mark"></span> GreenHaven Outdoor &amp; Garden</div>
+      <nav class="nav">
+        <a href="/">← Storefront</a>
+        <a href="/ops.html">Ops console</a>
+      </nav>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <div class="hero">
+      <h1>Ops Assistant — close the gaps shoppers found</h1>
+      <p>Every unanswerable shopper question becomes a memory in <code>ops:coverage-gaps</code>.
+      Ask this assistant what needs fixing, or work the list directly, then mark items resolved
+      once the catalog or FAQ content is updated.</p>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>Open coverage gaps</h2>
+        <table class="gaps" id="gaps-table">
+          <thead><tr><th>Question</th><th>Status</th><th>When</th><th></th></tr></thead>
+          <tbody><tr><td colspan="4">Loading…</td></tr></tbody>
+        </table>
+        <p style="font-size:.8rem;color:var(--muted);margin-top:.8rem">
+          This table reads directly from the store — reliable, not retrieval-scored.
+          The chat panel demonstrates asking the same question in natural language.
+        </p>
+      </div>
+      <div class="panel">
+        <h2>Ask the Ops Assistant</h2>
+        <div id="ops-chat" class="chat-mount"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>Internal tool · reads ops:coverage-gaps + shop:products + faq:service · not shopper-facing</footer>
+
+  <script type="module">
+    import { mountStatewaveChat } from "/vendor/chat-widget/mount.js";
+
+    // The ops console is an internal tool: if the server has OPS_API_KEY set,
+    // /api/ops/* requires it. Ask once and remember it for this tab only.
+    let authToken = sessionStorage.getItem("sw-ops-token") || "";
+
+    function authHeaders(extra = {}) {
+      return { ...extra, ...(authToken ? { authorization: `Bearer ${authToken}` } : {}) };
+    }
+
+    async function withAuthPrompt(fn) {
+      const res = await fn();
+      if (res.status === 401) {
+        const entered = window.prompt("Ops key required (OPS_API_KEY):");
+        if (entered) {
+          authToken = entered;
+          sessionStorage.setItem("sw-ops-token", authToken);
+          return fn();
+        }
+      }
+      return res;
+    }
+
+    async function resolveGap(sourceId) {
+      await withAuthPrompt(() =>
+        fetch(`/api/ops/gaps/${encodeURIComponent(sourceId)}/resolve`, {
+          method: "POST",
+          headers: authHeaders(),
+        })
+      );
+      loadGaps();
+    }
+
+    mountStatewaveChat(document.getElementById("ops-chat"), {
+      apiUrl: "/api/ops/chat",
+      readSubjects: ["ops:coverage-gaps", "shop:products", "faq:service"],
+      retrievalConfig: { globalMaxTokens: 2400 },
+      title: "GreenHaven Ops Assistant",
+      placeholder: "e.g. what needs fixing this week?",
+      mode: "ops",
+      onResolveGap: resolveGap,
+      authToken,
+    });
+
+    function renderGapRow(g) {
+      const tr = document.createElement("tr");
+
+      const qCell = document.createElement("td");
+      qCell.textContent = g.question;
+
+      const statusCell = document.createElement("td");
+      const badge = document.createElement("span");
+      badge.className = "badge open";
+      badge.textContent = "open";
+      statusCell.appendChild(badge);
+
+      const whenCell = document.createElement("td");
+      whenCell.textContent = new Date(g.timestamp).toLocaleString();
+
+      const actionCell = document.createElement("td");
+      const btn = document.createElement("button");
+      btn.className = "resolve-btn";
+      btn.textContent = "Resolve";
+      btn.onclick = () => resolveGap(g.sourceId);
+      actionCell.appendChild(btn);
+
+      tr.append(qCell, statusCell, whenCell, actionCell);
+      return tr;
+    }
+
+    async function loadGaps() {
+      const res = await withAuthPrompt(() => fetch("/api/ops/gaps", { headers: authHeaders() }));
+      if (!res.ok) return;
+      const data = await res.json();
+      const tbody = document.querySelector("#gaps-table tbody");
+      tbody.innerHTML = "";
+
+      if (data.open.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 4;
+        td.style.color = "var(--muted)";
+        td.textContent = "No open gaps — nice.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      for (const g of data.open) tbody.appendChild(renderGapRow(g));
+    }
+
+    loadGaps();
+  </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "chat-widget",
+  "version": "1.0.0",
+  "description": "Drop-in vanilla-TS grounded chat widget. Mirrors @statewavedev/chat-widget's mountStatewaveChat() contract. Browser-only; the server serves the compiled dist/mount.js as a static ES module (see server/src/index.ts and `npm run build:widget`).",
+  "type": "module",
+  "main": "src/mount.ts",
+  "license": "Apache-2.0"
+}

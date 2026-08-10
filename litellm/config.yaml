@@ -1,0 +1,25 @@
+## LiteLLM proxy config for this demo.
+##
+## LiteLLM is not a model provider — it's an OpenAI-compatible gateway in front
+## of whichever provider(s) you list here. Uncomment the block you want; the
+## demo only needs ONE model alias, and it must match LITELLM_MODEL in .env.
+
+model_list:
+  # Free/local: requires Ollama running on the host (`ollama pull llama3.2`).
+  # host.docker.internal resolves to the Windows/macOS host from inside Docker.
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: ollama/llama3.2
+      api_base: http://host.docker.internal:11434
+
+  # Paid: OpenAI directly. Set OPENAI_API_KEY in litellm/.env and swap which
+  # entry uses the `gpt-4o-mini` alias (aliases must be unique per model_name).
+  # - model_name: gpt-4o-mini
+  #   litellm_params:
+  #     model: openai/gpt-4o-mini
+  #     api_key: os.environ/OPENAI_API_KEY
+
+litellm_settings:
+  # The demo requests response_format: { type: "json_object" }. Providers that
+  # don't support it natively get it emulated via prompting instead of erroring.
+  drop_params: true

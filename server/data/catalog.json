@@ -1,0 +1,162 @@
+[
+  {
+    "id": "PLT-001",
+    "name": "Hosta 'Blue Mouse Ears'",
+    "category": "Plants > Shade Perennials",
+    "price": 14.5,
+    "currency": "USD",
+    "stock": 42,
+    "shipsInDays": 3,
+    "light": "full shade to part shade",
+    "description": "Compact hosta with thick, cupped blue-green leaves. Excellent for shady borders and containers. Deer-resistant once established.",
+    "careNotes": "Prefers moist, well-drained soil. Slug bait recommended in wet climates."
+  },
+  {
+    "id": "PLT-002",
+    "name": "Astilbe 'Fanal'",
+    "category": "Plants > Shade Perennials",
+    "price": 11.0,
+    "currency": "USD",
+    "stock": 30,
+    "shipsInDays": 3,
+    "light": "part shade to full shade",
+    "description": "Feathery dark-red plumes over bronze-green foliage. Reliable bloomer for shady, moist beds. Attracts pollinators.",
+    "careNotes": "Keep soil consistently moist; mulch to retain moisture in summer."
+  },
+  {
+    "id": "PLT-003",
+    "name": "Japanese Painted Fern",
+    "category": "Plants > Shade Perennials",
+    "price": 9.75,
+    "currency": "USD",
+    "stock": 0,
+    "shipsInDays": 10,
+    "light": "part shade to full shade",
+    "description": "Silvery-blue and burgundy fronds add color to dark corners without a single flower. Slow-spreading and low-maintenance.",
+    "careNotes": "Currently out of stock; next batch expected in propagation in ~10 days."
+  },
+  {
+    "id": "PLT-010",
+    "name": "Coneflower 'Magnus'",
+    "category": "Plants > Sun Perennials",
+    "price": 8.5,
+    "currency": "USD",
+    "stock": 60,
+    "shipsInDays": 2,
+    "light": "full sun",
+    "description": "Classic purple coneflower, drought-tolerant once established. Long summer bloom, popular with pollinators and finches.",
+    "careNotes": "Needs 6+ hours direct sun. Deadhead to extend bloom."
+  },
+  {
+    "id": "PLT-011",
+    "name": "Lavender 'Munstead'",
+    "category": "Plants > Sun Perennials",
+    "price": 10.25,
+    "currency": "USD",
+    "stock": 25,
+    "shipsInDays": 2,
+    "light": "full sun",
+    "description": "Compact, cold-hardy lavender with classic fragrance. Great for borders, containers, and pollinator gardens.",
+    "careNotes": "Needs sharp drainage — amend heavy clay soil with grit before planting."
+  },
+  {
+    "id": "PLT-020",
+    "name": "Boston Fern (indoor/patio)",
+    "category": "Plants > Houseplants",
+    "price": 16.0,
+    "currency": "USD",
+    "stock": 18,
+    "shipsInDays": 4,
+    "light": "bright indirect light, tolerates shade",
+    "description": "Classic hanging fern for shaded porches and indoor spaces. Lush, arching fronds; humidity-loving.",
+    "careNotes": "Mist regularly or place on a pebble tray; keep soil evenly moist."
+  },
+  {
+    "id": "TOOL-100",
+    "name": "Carbon-Steel Hand Trowel",
+    "category": "Tools > Hand Tools",
+    "price": 13.0,
+    "currency": "USD",
+    "stock": 120,
+    "shipsInDays": 2,
+    "description": "Forged carbon-steel blade with an ergonomic beech handle. Rust-resistant coating, lifetime-sharpened edge.",
+    "careNotes": "Wipe dry after use; oil the blade seasonally."
+  },
+  {
+    "id": "TOOL-101",
+    "name": "Bypass Pruning Shears",
+    "category": "Tools > Hand Tools",
+    "price": 24.0,
+    "currency": "USD",
+    "stock": 75,
+    "shipsInDays": 2,
+    "description": "Precision bypass blades for clean cuts on live stems up to 3/4 inch. Non-slip grip, replaceable spring.",
+    "careNotes": "Not designed for dead or woody branches over 2cm — use loppers instead."
+  },
+  {
+    "id": "TOOL-110",
+    "name": "Stainless Garden Fork",
+    "category": "Tools > Hand Tools",
+    "price": 29.5,
+    "currency": "USD",
+    "stock": 40,
+    "shipsInDays": 3,
+    "description": "Four-tine stainless fork for aerating beds and turning compost. Won't rust or stain in wet soil.",
+    "careNotes": "Dishwasher-safe head; wooden handle should stay dry."
+  },
+  {
+    "id": "FURN-200",
+    "name": "Acacia Wood Bistro Set",
+    "category": "Furniture > Outdoor Dining",
+    "price": 189.0,
+    "currency": "USD",
+    "stock": 12,
+    "shipsInDays": 7,
+    "description": "Two chairs and a round table in oiled acacia wood. Foldable for storage, rated for year-round outdoor use.",
+    "careNotes": "Re-oil annually to maintain water resistance."
+  },
+  {
+    "id": "FURN-210",
+    "name": "Cantilever Patio Umbrella (10ft)",
+    "category": "Furniture > Shade",
+    "price": 149.0,
+    "currency": "USD",
+    "stock": 8,
+    "shipsInDays": 7,
+    "description": "Offset cantilever umbrella with 360° rotation and crank lift. Water-resistant polyester canopy, UPF 50+.",
+    "careNotes": "Close in high winds above 25 mph; base sold separately."
+  },
+  {
+    "id": "IRR-300",
+    "name": "Drip Irrigation Starter Kit (25 plants)",
+    "category": "Irrigation",
+    "price": 42.0,
+    "currency": "USD",
+    "stock": 55,
+    "shipsInDays": 3,
+    "description": "1/4-inch drip line, emitters, and connectors for up to 25 plants. Connects to any standard hose spigot.",
+    "careNotes": "Flush lines monthly to prevent emitter clogging from mineral buildup."
+  },
+  {
+    "id": "IRR-310",
+    "name": "Mechanical Hose Timer",
+    "category": "Irrigation",
+    "price": 19.0,
+    "currency": "USD",
+    "stock": 90,
+    "shipsInDays": 2,
+    "description": "No-battery mechanical dial timer, waters for up to 2 hours before auto shut-off. Simple twist-to-set operation.",
+    "careNotes": "Drain and store indoors before the first frost."
+  },
+  {
+    "id": "SOIL-400",
+    "name": "Organic Raised-Bed Soil Mix (1.5 cu ft)",
+    "category": "Soil & Amendments",
+    "price": 12.0,
+    "currency": "USD",
+    "stock": 200,
+    "shipsInDays": 2,
+    "description": "OMRI-listed blend of compost, coco coir, and aged bark for raised beds and containers. pH balanced 6.2–6.8.",
+    "careNotes": "Top-dress with compost each season rather than fully replacing."
+  }
+]

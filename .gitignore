@@ -1,0 +1,8 @@
+node_modules/
+.env
+litellm/.env
+server/data/db.json
+*.log
+.DS_Store
+dist/
+*.tsbuildinfo
