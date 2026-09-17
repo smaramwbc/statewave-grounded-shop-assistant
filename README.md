@@ -267,6 +267,11 @@ etc.).
 delete it to force a clean re-ingestion from `catalog.json` and
 `service-content.json` on next boot.
 
+If that file can't be parsed on boot — a write cut short by a kill, say — it is
+moved aside as `db.json.corrupt-<timestamp>` and the store starts empty, so
+re-ingestion can't overwrite whatever was still recoverable in it. Delete the
+kept file once you're done with it.
+
 ## License
 
 Apache-2.0 — see [LICENSE](LICENSE).

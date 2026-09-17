@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import { chmodSync, mkdtempSync, readdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { StatewaveStore } from "../src/index.js";
@@ -109,6 +109,44 @@ test("a corrupt persisted file does not crash construction, and starts empty", (
 
   const store = new StatewaveStore({ persistPath });
   assert.equal(store.compileSubject("shop:products").length, 0);
+});
+
+test("a corrupt persisted file is kept aside, so later writes cannot destroy it", () => {
+  const dir = mkdtempSync(join(tmpdir(), "statewave-test-"));
+  const persistPath = join(dir, "db.json");
+  const corrupt = '{ "episodes": [{ "id": "ep_1", "subject": "shop:pro';
+  writeFileSync(persistPath, corrupt);
+
+  const store = new StatewaveStore({ persistPath });
+  store.createEpisode({ subject: "shop:products", sourceId: "P1", text: "hosta" });
+  store.flush();
+
+  const kept = readdirSync(dir).filter((name) => name.startsWith("db.json.corrupt-"));
+  assert.equal(kept.length, 1, "the unreadable file should still be there to restore from");
+  assert.equal(readFileSync(join(dir, kept[0]), "utf-8"), corrupt);
+  assert.equal(JSON.parse(readFileSync(persistPath, "utf-8")).episodes.length, 1);
+});
+
+// Directory permissions are the only portable way to make renameSync fail, and
+// root ignores them — Windows does not enforce them this way either.
+const canBlockRename = process.platform !== "win32" && process.getuid?.() !== 0;
+
+test("an unreadable file that cannot be kept aside is left untouched", { skip: !canBlockRename }, () => {
+  const dir = mkdtempSync(join(tmpdir(), "statewave-test-"));
+  const persistPath = join(dir, "db.json");
+  const corrupt = "{ not valid json";
+  writeFileSync(persistPath, corrupt);
+  chmodSync(dir, 0o500);
+
+  try {
+    const store = new StatewaveStore({ persistPath });
+    assert.equal(store.persistPath, null, "persistence should be dropped, not pointed at the only copy");
+    store.createEpisode({ subject: "shop:products", sourceId: "P1", text: "hosta" });
+    store.flush();
+    assert.equal(readFileSync(persistPath, "utf-8"), corrupt);
+  } finally {
+    chmodSync(dir, 0o700);
+  }
 });
 
 test("resolveCitations drops ids that were not in the retrieved evidence", () => {
