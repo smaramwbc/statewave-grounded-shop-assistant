@@ -248,17 +248,20 @@ export class StatewaveStore {
     while (round) {
       round = false;
       for (const bucket of ranked) {
-        if (bucket.cursor >= bucket.memories.length) continue;
-        const candidate = bucket.memories[bucket.cursor];
-        const cost = estimateTokens(candidate.text);
-        if (bucket.used + cost > bucket.budget) {
-          bucket.cursor = bucket.memories.length; // subject budget exhausted
-          continue;
+        // A candidate that is too big for what is left of this subject's budget
+        // is skipped, not treated as the end of the subject: lower-ranked
+        // memories are usually short and still fit. The cursor only ever moves
+        // forward, so a subject stops contributing once nothing left fits.
+        while (bucket.cursor < bucket.memories.length) {
+          const candidate = bucket.memories[bucket.cursor];
+          bucket.cursor++;
+          const cost = estimateTokens(candidate.text);
+          if (bucket.used + cost > bucket.budget) continue;
+          bucket.used += cost;
+          evidence.push(candidate);
+          round = true;
+          break;
         }
-        bucket.cursor++;
-        bucket.used += cost;
-        evidence.push(candidate);
-        round = true;
       }
     }
 

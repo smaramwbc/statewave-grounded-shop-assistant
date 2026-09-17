@@ -53,6 +53,32 @@ test("getContext respects globalMaxTokens budget", () => {
   assert.ok(evidence.length <= 1, "should stop pulling more evidence once the budget is exhausted");
 });
 
+test("getContext skips a memory that does not fit and keeps filling from the same subject", () => {
+  const store = new StatewaveStore();
+  const short = `shade ${"mulch ".repeat(40)}`;
+  store.createEpisode({ subject: "shop:products", sourceId: "P1", text: "Hosta care in shade tolerant borders." });
+  store.createEpisode({ subject: "shop:products", sourceId: "P2", text: `hosta care shade tolerant ${"mulch ".repeat(600)}` });
+  for (const id of ["P3", "P4", "P5"]) {
+    store.createEpisode({ subject: "shop:products", sourceId: id, text: short });
+  }
+
+  const query = "shade tolerant hosta care";
+  const unbudgeted = store.getContext({ readSubjects: ["shop:products"], query, globalMaxTokens: 5000 });
+  assert.deepEqual(
+    unbudgeted.map((e) => e.sourceId),
+    ["P1", "P2", "P3", "P4", "P5"],
+    "premise: the long page ranks second, ahead of the short ones"
+  );
+
+  // 500 tokens fits P1 and every short memory, but not the ~786-token P2.
+  const budgeted = store.getContext({ readSubjects: ["shop:products"], query, globalMaxTokens: 500 });
+  assert.deepEqual(
+    budgeted.map((e) => e.sourceId),
+    ["P1", "P3", "P4", "P5"],
+    "the oversized page is skipped, not treated as the end of the subject"
+  );
+});
+
 test("createEpisode debounces disk writes; flush() forces a write immediately", () => {
   const dir = mkdtempSync(join(tmpdir(), "statewave-test-"));
   const persistPath = join(dir, "db.json");
