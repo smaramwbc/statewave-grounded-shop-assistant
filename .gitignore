@@ -2,6 +2,7 @@ node_modules/
 .env
 litellm/.env
 server/data/db.json
+server/data/db.json.corrupt-*
 *.log
 .DS_Store
 dist/

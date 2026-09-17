@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from "node:fs";
 import { dirname } from "node:path";
 
 const SAVE_DEBOUNCE_MS = 250;
@@ -137,22 +137,41 @@ export class StatewaveStore {
   }
 
   private _load(): void {
-    if (!this.persistPath || !existsSync(this.persistPath)) return;
+    const filePath = this.persistPath;
+    if (!filePath || !existsSync(filePath)) return;
     try {
-      const raw: PersistedShape = JSON.parse(readFileSync(this.persistPath, "utf-8"));
+      const raw: PersistedShape = JSON.parse(readFileSync(filePath, "utf-8"));
       for (const ep of raw.episodes || []) {
         this.episodes.set(ep.id, ep);
         this.hashIndex.add(ep.contentHash);
       }
     } catch (err) {
       // A truncated/corrupt db.json (e.g. process killed mid-write) should not
-      // take the whole server down — start from an empty store instead, and
-      // say so loudly so it's not a silent data loss.
+      // take the whole server down — start from an empty store instead. The
+      // store keeps writing to the same path though, so the unreadable file
+      // would be overwritten by the first save, within SAVE_DEBOUNCE_MS of the
+      // next episode. Move it aside first: whatever is still recoverable in it
+      // has to outlive the warning that points at it.
       const message = err instanceof Error ? err.message : String(err);
-      console.warn(
-        `StatewaveStore: could not read ${this.persistPath} (${message}). ` +
-          `Starting from an empty store — delete the file or restore a backup if this is unexpected.`
-      );
+      const keptPath = `${filePath}.corrupt-${new Date().toISOString().replace(/[:.]/g, "-")}`;
+      try {
+        renameSync(filePath, keptPath);
+        console.warn(
+          `StatewaveStore: could not read ${filePath} (${message}). ` +
+            `Kept the unreadable file as ${keptPath} and started from an empty store — ` +
+            `restore from it if this is unexpected.`
+        );
+      } catch (keepErr) {
+        // The only copy cannot be preserved, so stop persisting rather than
+        // overwrite it: an operator can repair or remove the file and restart.
+        const keepMessage = keepErr instanceof Error ? keepErr.message : String(keepErr);
+        this.persistPath = null;
+        console.warn(
+          `StatewaveStore: could not read ${filePath} (${message}) ` +
+            `and could not move it aside (${keepMessage}). ` +
+            `Running in memory and leaving the file untouched — nothing is persisted until it is repaired or removed.`
+        );
+      }
     }
   }
 
