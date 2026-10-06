@@ -89,6 +89,10 @@ function contentHash(subject: string, sourceId: string, text: string): string {
   return createHash("sha256").update(`${subject}::${sourceId}::${text}`).digest("hex");
 }
 
+function sourceKey(subject: string, sourceId: string): string {
+  return `${subject}::${sourceId}`;
+}
+
 /** Rough token estimate (words * 1.3), good enough for a demo token budget. */
 function estimateTokens(text: string | undefined | null): number {
   return Math.ceil((text || "").split(/\s+/).filter(Boolean).length * 1.3);
@@ -124,6 +128,8 @@ export class StatewaveStore {
   persistPath: string | null;
   episodes: Map<string, Episode>;
   hashIndex: Set<string>;
+  /** Content hash of the newest episode for each subject+sourceId. */
+  latestHash: Map<string, string>;
   private _saveTimer: ReturnType<typeof setTimeout> | null;
   private _dirty: boolean;
 
@@ -131,6 +137,7 @@ export class StatewaveStore {
     this.persistPath = persistPath || null;
     this.episodes = new Map(); // id -> episode
     this.hashIndex = new Set(); // contentHash set, for idempotent ingestion
+    this.latestHash = new Map();
     this._saveTimer = null;
     this._dirty = false;
     this._load();
@@ -145,6 +152,14 @@ export class StatewaveStore {
         this.episodes.set(ep.id, ep);
         this.hashIndex.add(ep.contentHash);
       }
+      // Remember the newest episode per source, the same way compileSubject picks it.
+      const newest = new Map<string, Episode>();
+      for (const ep of this.episodes.values()) {
+        const key = sourceKey(ep.subject, ep.sourceId);
+        const current = newest.get(key);
+        if (!current || current.createdAt < ep.createdAt) newest.set(key, ep);
+      }
+      for (const [key, ep] of newest) this.latestHash.set(key, ep.contentHash);
     } catch (err) {
       // A truncated/corrupt db.json (e.g. process killed mid-write) should not
       // take the whole server down — start from an empty store instead. The
@@ -204,12 +219,15 @@ export class StatewaveStore {
   }
 
   /**
-   * Append one fact. Idempotent by content hash (subject+sourceId+text),
-   * so re-running an ingestion job nightly does not duplicate unchanged rows.
+   * Append one fact. The call is skipped only when it matches the newest
+   * episode for that subject+sourceId, so re-running an ingestion job nightly
+   * does not duplicate unchanged rows, while a row that reverts to an earlier
+   * value is still recorded as the new latest.
    */
   createEpisode({ subject, sourceId, text, metadata = {} }: CreateEpisodeInput): CreateEpisodeResult {
     const hash = contentHash(subject, sourceId, text);
-    if (this.hashIndex.has(hash)) {
+    const key = sourceKey(subject, sourceId);
+    if (this.latestHash.get(key) === hash) {
       return { deduped: true, id: null };
     }
     const id = `ep_${hash.slice(0, 16)}`;
@@ -224,6 +242,7 @@ export class StatewaveStore {
     };
     this.episodes.set(id, episode);
     this.hashIndex.add(hash);
+    this.latestHash.set(key, hash);
     this._save();
     return { deduped: false, id };
   }

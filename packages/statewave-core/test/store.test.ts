@@ -21,6 +21,39 @@ test("createEpisode does not dedupe when text changes", () => {
   assert.equal(second.deduped, false);
 });
 
+test("createEpisode records a row that reverts to an earlier value", async () => {
+  const store = new StatewaveStore();
+  const row = { subject: "shop:products", sourceId: "p1" };
+  store.createEpisode({ ...row, text: "A" });
+  await new Promise((r) => setTimeout(r, 5));
+  store.createEpisode({ ...row, text: "B" });
+  await new Promise((r) => setTimeout(r, 5));
+  const reverted = store.createEpisode({ ...row, text: "A" });
+
+  assert.equal(reverted.deduped, false);
+  assert.equal(store.compileSubject("shop:products")[0].text, "A");
+  assert.equal(
+    store.createEpisode({ ...row, text: "A" }).deduped,
+    true,
+    "re-ingesting the current value is still a no-op"
+  );
+});
+
+test("the latest value per source is remembered after a reload from disk", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "statewave-test-"));
+  const persistPath = join(dir, "db.json");
+  const row = { subject: "shop:products", sourceId: "p1" };
+  const store = new StatewaveStore({ persistPath });
+  store.createEpisode({ ...row, text: "A" });
+  await new Promise((r) => setTimeout(r, 5));
+  store.createEpisode({ ...row, text: "B" });
+  store.flush();
+
+  const reloaded = new StatewaveStore({ persistPath });
+  assert.equal(reloaded.createEpisode({ ...row, text: "B" }).deduped, true);
+  assert.equal(reloaded.createEpisode({ ...row, text: "A" }).deduped, false);
+});
+
 test("compileSubject keeps only the newest episode per sourceId", async () => {
   const store = new StatewaveStore();
   store.createEpisode({ subject: "ops:coverage-gaps", sourceId: "gap_1", text: "open", metadata: { status: "open" } });
