@@ -23,6 +23,8 @@ export interface Episode {
   metadata: EpisodeMetadata;
   contentHash: string;
   createdAt: string;
+  /** Order of ingestion within this store, so rows written in the same millisecond still have a newest. */
+  seq?: number;
 }
 
 export interface CreateEpisodeInput {
@@ -93,6 +95,14 @@ function sourceKey(subject: string, sourceId: string): string {
   return `${subject}::${sourceId}`;
 }
 
+/** Whether `a` was ingested after `b`: by time, then by sequence when two share a millisecond. */
+function isNewer(a: Episode, b: Episode): boolean {
+  if (a.createdAt !== b.createdAt) {
+    return a.createdAt > b.createdAt;
+  }
+  return (a.seq ?? 0) > (b.seq ?? 0);
+}
+
 /** Rough token estimate (words * 1.3), good enough for a demo token budget. */
 function estimateTokens(text: string | undefined | null): number {
   return Math.ceil((text || "").split(/\s+/).filter(Boolean).length * 1.3);
@@ -132,6 +142,7 @@ export class StatewaveStore {
   latestHash: Map<string, string>;
   private _saveTimer: ReturnType<typeof setTimeout> | null;
   private _dirty: boolean;
+  private _nextSeq: number;
 
   constructor({ persistPath }: StoreOptions = {}) {
     this.persistPath = persistPath || null;
@@ -140,6 +151,7 @@ export class StatewaveStore {
     this.latestHash = new Map();
     this._saveTimer = null;
     this._dirty = false;
+    this._nextSeq = 0;
     this._load();
   }
 
@@ -151,13 +163,14 @@ export class StatewaveStore {
       for (const ep of raw.episodes || []) {
         this.episodes.set(ep.id, ep);
         this.hashIndex.add(ep.contentHash);
+        this._nextSeq = Math.max(this._nextSeq, (ep.seq ?? -1) + 1);
       }
       // Remember the newest episode per source, the same way compileSubject picks it.
       const newest = new Map<string, Episode>();
       for (const ep of this.episodes.values()) {
         const key = sourceKey(ep.subject, ep.sourceId);
         const current = newest.get(key);
-        if (!current || current.createdAt < ep.createdAt) newest.set(key, ep);
+        if (!current || isNewer(ep, current)) newest.set(key, ep);
       }
       for (const [key, ep] of newest) this.latestHash.set(key, ep.contentHash);
     } catch (err) {
@@ -239,6 +252,7 @@ export class StatewaveStore {
       metadata,
       contentHash: hash,
       createdAt: new Date().toISOString(),
+      seq: this._nextSeq++,
     };
     this.episodes.set(id, episode);
     this.hashIndex.add(hash);
@@ -257,7 +271,7 @@ export class StatewaveStore {
     for (const ep of this.episodes.values()) {
       if (ep.subject !== subject) continue;
       const existing = bySource.get(ep.sourceId);
-      if (!existing || existing.createdAt < ep.createdAt) {
+      if (!existing || isNewer(ep, existing)) {
         bySource.set(ep.sourceId, ep);
       }
     }

@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { mock, test } from "node:test";
 import assert from "node:assert/strict";
 import { chmodSync, mkdtempSync, readdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -37,6 +37,35 @@ test("createEpisode records a row that reverts to an earlier value", async () =>
     true,
     "re-ingesting the current value is still a no-op"
   );
+});
+
+test("createEpisode keeps a single episode when the same new value is ingested twice", async () => {
+  const store = new StatewaveStore();
+  const row = { subject: "shop:products", sourceId: "p1" };
+  store.createEpisode({ ...row, text: "A" });
+  await new Promise((r) => setTimeout(r, 5));
+  store.createEpisode({ ...row, text: "B" });
+  const again = store.createEpisode({ ...row, text: "B" });
+
+  assert.equal(again.deduped, true);
+  assert.equal([...store.episodes.values()].filter((e) => e.text === "B").length, 1);
+  assert.equal(store.compileSubject("shop:products")[0].text, "B");
+});
+
+test("compileSubject picks the later ingest when two rows land in the same millisecond", () => {
+  mock.method(Date.prototype, "toISOString", () => "2026-10-06T00:00:00.000Z");
+  try {
+    const store = new StatewaveStore();
+    const row = { subject: "shop:products", sourceId: "p1" };
+    store.createEpisode({ ...row, text: "A" });
+    store.createEpisode({ ...row, text: "B" });
+    assert.equal(store.compileSubject("shop:products")[0].text, "B");
+
+    store.createEpisode({ ...row, text: "A" });
+    assert.equal(store.compileSubject("shop:products")[0].text, "A");
+  } finally {
+    mock.restoreAll();
+  }
 });
 
 test("the latest value per source is remembered after a reload from disk", async () => {
