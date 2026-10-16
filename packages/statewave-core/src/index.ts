@@ -100,7 +100,7 @@ function isNewer(a: Episode, b: Episode): boolean {
   if (a.createdAt !== b.createdAt) {
     return a.createdAt > b.createdAt;
   }
-  return (a.seq ?? 0) > (b.seq ?? 0);
+  return (a.seq ?? -1) > (b.seq ?? -1);
 }
 
 /** Rough token estimate (words * 1.3), good enough for a demo token budget. */
@@ -147,7 +147,9 @@ export class StatewaveStore {
   constructor({ persistPath }: StoreOptions = {}) {
     this.persistPath = persistPath || null;
     this.episodes = new Map(); // id -> episode
-    this.hashIndex = new Set(); // contentHash set, for idempotent ingestion
+    // Retained for the on-disk format and for callers that introspect it; dedupe now keys on
+    // latestHash, since an ever-seen hash set cannot tell a revert from a duplicate.
+    this.hashIndex = new Set();
     this.latestHash = new Map();
     this._saveTimer = null;
     this._dirty = false;
@@ -243,7 +245,11 @@ export class StatewaveStore {
     if (this.latestHash.get(key) === hash) {
       return { deduped: true, id: null };
     }
-    const id = `ep_${hash.slice(0, 16)}`;
+    // The id is derived from the content hash, so a row that reverts to a value it already
+    // held hashes to an existing id. Suffix it so the earlier episode is superseded rather
+    // than overwritten, which is what keeps the store append-only as the README promises.
+    const base = `ep_${hash.slice(0, 16)}`;
+    const id = this.episodes.has(base) ? `${base}_${this._nextSeq}` : base;
     const episode: Episode = {
       id,
       subject,
