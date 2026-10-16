@@ -124,7 +124,7 @@ export function mountStatewaveChat(el: HTMLElement, options: MountOptions): Moun
   } = options;
 
   injectStyles();
-  const sessionId = `sess_${Math.random().toString(36).slice(2)}`;
+  const sessionId = `sess_${crypto.randomUUID()}`;
 
   el.innerHTML = "";
   const root = document.createElement("div");
