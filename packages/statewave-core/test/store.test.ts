@@ -39,6 +39,22 @@ test("createEpisode records a row that reverts to an earlier value", async () =>
   );
 });
 
+test("a reverted row appends an episode instead of overwriting the earlier one", async () => {
+  const store = new StatewaveStore();
+  const row = { subject: "shop:products", sourceId: "p1" };
+  // The episode id is derived from the content hash, so a revert hashes to an id that already
+  // exists. Without a suffix, `episodes.set` would silently replace the first episode and the
+  // store would stop being append-only, which the README states it is.
+  for (const text of ["A", "B", "A", "C", "A"]) {
+    store.createEpisode({ ...row, text });
+    await new Promise((r) => setTimeout(r, 2));
+  }
+
+  assert.equal(store.episodes.size, 5, "every write is retained, including the reverts");
+  assert.equal(new Set(store.episodes.keys()).size, 5, "ids are unique");
+  assert.equal(store.compileSubject("shop:products")[0].text, "A");
+});
+
 test("createEpisode keeps a single episode when the same new value is ingested twice", async () => {
   const store = new StatewaveStore();
   const row = { subject: "shop:products", sourceId: "p1" };
