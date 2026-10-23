@@ -43,3 +43,14 @@ test("passes through valid readSubjects and globalMaxTokens", () => {
   assert.deepEqual(result.readSubjects, ["shop:products"]);
   assert.equal(result.retrievalConfig?.globalMaxTokens, 1500);
 });
+
+test("rejects an overly long sessionId", () => {
+  const result = validateChatRequest({ message: "hi", sessionId: "a".repeat(129) });
+  assert.match(result.error ?? "", /sessionId must be 128 characters or fewer/);
+});
+
+test("accepts a sessionId at the length cap", () => {
+  const result = validateChatRequest({ message: "hi", sessionId: "a".repeat(128) });
+  assert.ok(!isValidationError(result));
+  assert.equal(result.sessionId, "a".repeat(128));
+});

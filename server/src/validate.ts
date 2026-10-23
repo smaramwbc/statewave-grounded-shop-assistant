@@ -1,6 +1,9 @@
 const MAX_MESSAGE_LENGTH = 2000;
 const MAX_READ_SUBJECTS = 10;
 const MAX_GLOBAL_TOKENS = 8000;
+// Session ids are generated as UUIDs (36 chars); the cap leaves room for custom ids
+// while keeping the session store's MAX_SESSIONS bound meaningful in bytes.
+const MAX_SESSION_ID_LENGTH = 128;
 
 interface RawChatRequestBody {
   sessionId?: unknown;
@@ -47,6 +50,9 @@ export function validateChatRequest(body: unknown): ValidationError | ValidatedC
 
   if (sessionId !== undefined && typeof sessionId !== "string") {
     return { error: "sessionId must be a string" };
+  }
+  if (typeof sessionId === "string" && sessionId.length > MAX_SESSION_ID_LENGTH) {
+    return { error: `sessionId must be ${MAX_SESSION_ID_LENGTH} characters or fewer` };
   }
 
   if (readSubjects !== undefined) {
