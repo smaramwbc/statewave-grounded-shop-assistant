@@ -20,7 +20,16 @@ export interface SessionStore {
 }
 
 export function createSessionStore(): SessionStore {
-  const sessions = new Map<string, ChatSessionRecord>(); // id -> { id, history, lastSeen }
+  // id -> { id, history, lastSeen }. A Map iterates in insertion order and
+  // touch() re-inserts a session on every use, so the first key is always the
+  // least recently used one.
+  const sessions = new Map<string, ChatSessionRecord>();
+
+  function touch(session: ChatSessionRecord): void {
+    session.lastSeen = Date.now();
+    sessions.delete(session.id);
+    sessions.set(session.id, session);
+  }
 
   function evictExpired(): void {
     const cutoff = Date.now() - TTL_MS;
@@ -31,8 +40,8 @@ export function createSessionStore(): SessionStore {
 
   function evictOldestIfFull(): void {
     if (sessions.size < MAX_SESSIONS) return;
-    const oldest = [...sessions.values()].sort((a, b) => a.lastSeen - b.lastSeen)[0];
-    if (oldest) sessions.delete(oldest.id);
+    const oldestId = sessions.keys().next().value;
+    if (oldestId !== undefined) sessions.delete(oldestId);
   }
 
   setInterval(evictExpired, 5 * 60 * 1000).unref();
@@ -41,7 +50,7 @@ export function createSessionStore(): SessionStore {
     get(sessionId, fallbackId) {
       const existing = sessionId ? sessions.get(sessionId) : undefined;
       if (existing) {
-        existing.lastSeen = Date.now();
+        touch(existing);
         return existing;
       }
       evictOldestIfFull();
@@ -50,8 +59,7 @@ export function createSessionStore(): SessionStore {
       return session;
     },
     save(session) {
-      session.lastSeen = Date.now();
-      sessions.set(session.id, session);
+      touch(session);
     },
   };
 }
